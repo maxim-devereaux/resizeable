@@ -1,25 +1,19 @@
-* {
-  padding: 0;
-  margin: 0;
-  top: 0;
-  left: 0;
-}
 
-.contentWindow{
+.content-window {
   position: absolute;
   background-color: #B4E0DE;
 }
 
-.resizer{
+.resizer {
   position: absolute;
-  z-index: 100;
+  z-index: 1035;
   background-color: #4E6160;
 }
 
-.verticalResizer{
+.vertical-resizer {
   cursor: ns-resize;
 }
 
-.horizontalResizer{
+.horizontal-resizer {
   cursor: ew-resize;
 }
