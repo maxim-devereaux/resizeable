@@ -2,6 +2,8 @@ const Resizeable = {};
 Resizeable.activeContentWindows = [];
 Resizeable.activeResizers = [];
 Resizeable.currentResizer = null;
+Resizeable.contentWindowSeq = 0;
+Resizeable.resizerSeq = 0;
 
 Resizeable.Sides = {
   TOP: "TOP",
@@ -99,6 +101,14 @@ Resizeable.setupChildren = function(parentWindow){
 
 };
 
+Resizeable.nextContentWindowSeq = function() {
+  return ++Resizeable.contentWindowSeq;
+};
+
+Resizeable.nextResizerSeq = function() {
+  return ++Resizeable.resizerSeq;
+};
+
 Resizeable.ContentWindow = class{
   
   constructor(parent, width, height, div){
@@ -108,7 +118,7 @@ Resizeable.ContentWindow = class{
     this.sizeFractionOfParent = 0.5;
 
     if(div === null){
-      this.divId = "content-window" + Resizeable.activeContentWindows.length;
+      this.divId = "content-window" + Resizeable.nextContentWindowSeq();
 
       let div = document.createElement('div');
       div.id = this.divId;
@@ -123,7 +133,7 @@ Resizeable.ContentWindow = class{
     }
     else{
       if(div.id === "")
-        div.id = "content-window" + Resizeable.activeContentWindows.length;
+        div.id = "content-window" + Resizeable.nextContentWindowSeq();
       this.divId = div.id;
       this.getDiv().classList.add("content-window");
     }
@@ -437,12 +447,8 @@ Resizeable.ContentWindow = class{
     parentWin.getDiv().innerHTML = elemContent;
 
     if (parentWin.isSplitHorizontally) {
-      parentWin.width = this.width + sibWin.width + parentWin.childResizerThickness;
-      parentWin.getDiv().style.width = Math.round(parentWin.width) + "px";
       parentWin.isSplitHorizontally = false;
     } else if (parentWin.isSplitVertically) {
-      parentWin.height = this.height + sibWin.height + parentWin.childResizerThickness;
-      parentWin.getDiv().style.height = Math.round(parentWin.height) + "px";
       parentWin.isSplitVertically = false;
     }
     if ( sibWin.children.length > 0 ) {
@@ -452,7 +458,15 @@ Resizeable.ContentWindow = class{
       parentWin.isSplitVertically = sibWin.isSplitVertically;
       parentWin.children[0].parent = parentWin;
       parentWin.children[1].parent = parentWin;
-      parentWin.childResizer.parent.divId = parentWin.getDivId();
+      if( parentWin.isSplitHorizontally ) {
+        parentWin.leftWindow = parentWin.children[0];
+        parentWin.rightWindow = parentWin.children[1];
+      }
+      else if( parentWin.isSplitVertically ) {
+        parentWin.topWindow = parentWin.children[0];
+        parentWin.bottomWindow = parentWin.children[1];
+      }
+      parentWin.childResizer.parent = parentWin;
     }
     else {
       parentWin.children = [];
@@ -572,9 +586,9 @@ Resizeable.Resizer = class{
       this.bottomWindow = window2;
     }
 
-    this.divId = `resizer${Resizeable.activeResizers.length}`;
+    this.divId = "resizer" + Resizeable.nextResizerSeq();
 
-    let div = document.createElement('div');
+    let div= document.createElement('div');
     div.id = this.divId;
     div.classList.add('resizer');
     parent.getDiv().appendChild(div);
