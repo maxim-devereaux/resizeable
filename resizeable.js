@@ -31,7 +31,7 @@ Resizeable.initialise = function( parentElem , options ){
   Resizeable.resizerThickness = ( options && options.separator && typeof options.separator === 'number' ) ? options.separator : 4;
   Resizeable.initialSizes = ( options && options.sizes && options.sizes instanceof Array) ? options.sizes : [];
   Resizeable.layoutName = ( options && options.name && typeof options.name === 'string' && options.name.length > 0 ) ? options.name : 'standard';
-  Resizeable.exportFunc = ( options && options.export && typeof options.name === 'function' ) ? exportFunc : console.log;
+  Resizeable.exportFunc = ( options && options.export && typeof options.name === 'function' ) ? options.export : console.log;
   if( options && options.lang && typeof options.lang === 'string' && options.lang.length > 0 ) { Resizeable.language = Resizeable.SupportedLang.indexOf( options.lang ) !== -1 ? ( options.lang ) : 'en' }
   else { Resizeable.language = 'en' }
 
@@ -236,7 +236,7 @@ Resizeable.setModules = function( modArr ) {
 };
 
 function writeLayout ( parentElem, layoutObj, modules, sizes ) {
-  let child0, child1, childElem;
+  let child0, child1;
   sizes[ parentElem.id ] = layoutObj.size;
   if( layoutObj.content !== undefined ) {
     child0 = Resizeable.Classes.CONTENT_WINDOW + Resizeable.nextContentWindowSeq();
@@ -299,10 +299,7 @@ function readLayout ( currWin ) {
   let layout = { splitH: currWin.isSplitHorizontally, splitV: currWin.isSplitVertically, size: currWin.sizeFractionOfParent };
 
   if( currWin.children.length > 0 ) {
-    let child0 = null, child1 = null;
-    child0 = readLayout( currWin.children[0] );
-    child1 = readLayout( currWin.children[1] );
-    layout.content = [ child0, child1 ];
+    layout.content = [ readLayout( currWin.children[0] ), readLayout( currWin.children[1] ) ];
   }
   else if ( currWin.module !== null ) {
     layout.module = currWin.module.moduleId;
