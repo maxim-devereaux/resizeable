@@ -51,6 +51,13 @@ Resizeable.initialise = function( parentElem , options ){
   });
 };
 
+Resizeable.layoutSize = function( width, height ) {
+  if( Resizeable.activeContentWindows.length > 0 ) {
+    Resizeable.activeContentWindows[0].changeSize( width, height );
+    Resizeable.activeContentWindows[0].childrenResize();
+  }
+};
+
 Resizeable.getTranslation = function( key ) {
     let transValue = null;
     if( resizeableTranslations[ Resizeable.language ] ) {
