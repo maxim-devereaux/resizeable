@@ -687,15 +687,27 @@ Resizeable.ContentWindow = class {
     if( this.children.length > 0 || this.width < ( 2 * this.minWidth ) + Resizeable.resizerThickness ) {
       return
     }
+    elemContent = Array.from( currElem.children );
+
+    let c1 = document.createElement('div');
+    let c2 = document.createElement('div');
+
     if( isHorizontal ) {
-      elemContent = '<div class="' + Resizeable.Classes.WINDOW_LEFT + '">' + ( existTopLeft ? currElem.innerHTML : '' ) +
-          '</div><div class="' + Resizeable.Classes.WINDOW_RIGHT + '">' + ( existTopLeft ? currElem.innerHTML : '' ) + '</div>'
+      c1.classList.add( Resizeable.Classes.WINDOW_LEFT )
+      c2.classList.add( Resizeable.Classes.WINDOW_RIGHT )
     }
     else {
-      elemContent = '<div class="' + Resizeable.Classes.WINDOW_TOP + '">' + ( existTopLeft ? '' : currElem.innerHTML ) +
-          '</div><div class="' + Resizeable.Classes.WINDOW_BOTTOM + '">' + ( existTopLeft ? '' : currElem.innerHTML ) + '</div>'
+      c1.classList.add( Resizeable.Classes.WINDOW_TOP )
+      c2.classList.add( Resizeable.Classes.WINDOW_BOTTOM )
     }
-    currElem.innerHTML = elemContent;
+
+    for (let i=0; i<elemContent.length; i++ ) {
+      if( existTopLeft ) { c1.appendChild( elemContent[i] ) }
+      else { c2.appendChild( elemContent[i] ) }
+    }
+
+    currElem.appendChild( c1 );
+    currElem.appendChild( c2 );
     Resizeable.setupChildren( this );
     if( this.module !== null ) {
       this.children[ existTopLeft ? 0 : 1 ].module = { ...this.module };
@@ -708,11 +720,11 @@ Resizeable.ContentWindow = class {
     let elemContent, sibWin, parentWin, removeResizer;
     this.unbindModule();
     sibWin = this.getSibling();
-    if( sibWin !== null ) { elemContent = document.getElementById(sibWin.getDivId()).innerHTML }
+    if( sibWin !== null ) { elemContent = Array.from( sibWin.getDiv().children ) }
 
     parentWin = this.parent;
     if( parentWin ) {
-      removeResizer = this.parent.childResizer;
+      removeResizer = parentWin.childResizer;
       removeResizer.getDiv().parentNode.removeChild(removeResizer.getDiv());
       for (let i = 0; i < Resizeable.activeResizers.length; i++) {
         if (Resizeable.activeResizers[i] === removeResizer) {
@@ -721,7 +733,16 @@ Resizeable.ContentWindow = class {
         }
       }
 
-      parentWin.getDiv().innerHTML = elemContent;
+      // DOM changes
+      let parentElem = parentWin.getDiv();
+      console.log( elemContent );
+      for (let j= 0; j < elemContent.length; j++ ) {
+        console.log( elemContent[j] );
+        parentElem.insertAdjacentElement( 'beforeend', elemContent[j] )
+      }
+      if( sibWin !== null ) { sibWin.getDiv().remove() }
+      this.getDiv().remove();
+
       if (sibWin.module !== null) {
         parentWin.module = {...sibWin.module};
         sibWin.module = null;
