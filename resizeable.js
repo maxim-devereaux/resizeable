@@ -657,7 +657,7 @@ Resizeable.ContentWindow = class {
         this.module = {...foundModules[0]};
         Resizeable.availableModules.splice(Resizeable.availableModules.findIndex(e => e.moduleId === tgtModule),1);
         if( this.module.initialise !== undefined && this.module.initialise !== null && typeof this.module.initialise === 'function' ) {
-          this.module.initialise();
+          this.module.initialise( this.getDiv());
         }
       }
     }
@@ -771,7 +771,7 @@ Resizeable.ContentWindow = class {
   contentResize() {
     if( this.module !== null ) {
       if( this.module.resize !== undefined && this.module.resize !== null && typeof this.module.resize === 'function' ) {
-        this.module.resize();
+        this.module.resize( this.getDiv());
       }
     }
   }
