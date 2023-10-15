@@ -491,8 +491,11 @@ Resizeable.ContentWindow = class {
   }
 
   childrenResize(){
-    if(this.children.length === 0)
-      return; //Content window has no children
+    if(this.children.length === 0) {
+      //Content window has no children, but maybe content
+      this.contentResize();
+      return
+    }
 
     if(this.isSplitHorizontally){
       let height = this.height;
@@ -505,7 +508,6 @@ Resizeable.ContentWindow = class {
       this.children[1].getDiv().style.top = ( parseInt(this.children[0].getDiv().style.height) + this.childResizer.lineThickness ).toString() + "px";
     }
 
-    this.contentResize();
 
     this.children[0].childrenResize();
     this.children[1].childrenResize();
