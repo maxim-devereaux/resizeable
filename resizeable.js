@@ -778,6 +778,7 @@ Resizeable.ContentWindow = class {
   contentResize() {
     if( this.module !== null ) {
       if( this.module.resize !== undefined && this.module.resize !== null && typeof this.module.resize === 'function' ) {
+        console.log( 'Calling resize' );
         this.module.resize( this.getDiv());
       }
     }
