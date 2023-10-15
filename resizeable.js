@@ -735,9 +735,7 @@ Resizeable.ContentWindow = class {
 
       // DOM changes
       let parentElem = parentWin.getDiv();
-      console.log( elemContent );
       for (let j= 0; j < elemContent.length; j++ ) {
-        console.log( elemContent[j] );
         parentElem.insertAdjacentElement( 'beforeend', elemContent[j] )
       }
       if( sibWin !== null ) { sibWin.getDiv().remove() }
@@ -799,7 +797,6 @@ Resizeable.ContentWindow = class {
   contentResize() {
     if( this.module !== null ) {
       if( this.module.resize !== undefined && this.module.resize !== null && typeof this.module.resize === 'function' ) {
-        console.log( 'Calling resize' );
         this.module.resize( this.getDiv());
       }
     }
