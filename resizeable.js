@@ -7,10 +7,13 @@ export const Resizeable = {};
 Resizeable.language = null;
 Resizeable.activeContentWindows = [];
 Resizeable.activeResizers = [];
+Resizeable.contentModules = [];
 Resizeable.availableModules = [];
 Resizeable.currentResizer = null;
 Resizeable.contentWindowSeq = 0;
 Resizeable.resizerSeq = 0;
+Resizeable.layoutName = '';
+Resizeable.exportFunc = null;
 
 Resizeable.Sides = {
   TOP: "TOP",
@@ -22,16 +25,24 @@ Resizeable.Sides = {
 Resizeable.SupportedLang = resizeableLang;
 Resizeable.Classes = resizeableClasses;
 
-Resizeable.initialise = function(parentId, language, initialSizes, resizerThickness ){
-  //Find left window
-  Resizeable.resizerThickness = resizerThickness ?? 4;
-  Resizeable.initialSizes = initialSizes ?? [];
-  Resizeable.language = Resizeable.SupportedLang.indexOf( language ?? 'en' ) !== -1 ? ( language ?? 'en' ) : 'en';
-  let parent = document.getElementById(parentId);
-  let parentWindow = new Resizeable.ContentWindow(null, parseInt(parent.style.width, 10), parseInt(parent.style.height, 10), parent);
+Resizeable.initialise = function( parentElem , options ){
+
+  // Process options
+  Resizeable.resizerThickness = ( options && options.separator && typeof options.separator === 'number' ) ? options.separator : 4;
+  Resizeable.initialSizes = ( options && options.sizes && options.sizes instanceof Array) ? options.sizes : [];
+  Resizeable.layoutName = ( options && options.name && typeof options.name === 'string' && options.name.length > 0 ) ? options.name : 'standard';
+  Resizeable.exportFunc = ( options && options.export && typeof options.name === 'function' ) ? exportFunc : console.log;
+  if( options && options.lang && typeof options.lang === 'string' && options.lang.length > 0 ) { Resizeable.language = Resizeable.SupportedLang.indexOf( options.lang ) !== -1 ? ( options.lang ) : 'en' }
+  else { Resizeable.language = 'en' }
+
+  let parentWindow = new Resizeable.ContentWindow(null, parseInt(parentElem.style.width, 10), parseInt(parentElem.style.height, 10), parentElem);
   Resizeable.setupChildren(parentWindow);
 
   window.addEventListener("click", ( event ) => {
+    Resizeable.closeContextMenu( event );
+  });
+
+  window.addEventListener("blur", ( event ) => {
     Resizeable.closeContextMenu( event );
   });
 
@@ -92,7 +103,7 @@ Resizeable.closeContextMenu = function(e) {
   // If there is a context menu visible
   menuElem = document.getElementsByClassName( Resizeable.Classes.CONTEXT_MENU );
   // If we didn't click inside the context menu
-  if( menuElem.length > 0 && !currElem.classList.contains( Resizeable.Classes.CONTEXT_MENU ) && !currElem.classList.contains( Resizeable.Classes.CONTEXT_MENUITEM )) {
+  if( menuElem.length > 0 && ( e.currentTarget === window || ( !currElem.classList.contains( Resizeable.Classes.CONTEXT_MENU ) && !currElem.classList.contains( Resizeable.Classes.CONTEXT_MENUITEM )))) {
     menuElem[0].remove();
   }
 };
@@ -100,7 +111,7 @@ Resizeable.closeContextMenu = function(e) {
 Resizeable.handleContextMenu = function(e) {
     Resizeable.closeContextMenu(e);
     let currElem = e.target, menuElem, cmenu = '';
-    // If it is one of Resizeable's elements
+    // If it is one of "our" elements
     if( currElem.id && ( currElem.classList.contains( Resizeable.Classes.CONTENT_WINDOW ) || currElem.classList.contains( Resizeable.Classes.RESIZER ))) {
         menuElem = document.getElementsByClassName( Resizeable.Classes.CONTEXT_MENU );
         if( menuElem.length === 0 ) {
@@ -109,6 +120,7 @@ Resizeable.handleContextMenu = function(e) {
                 if( thisWin.children.length === 0 ) {
                     if( thisWin.module === null ) {
                       cmenu = '<div class="' + Resizeable.Classes.CONTEXT_MENU + '">\n' +
+                          '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="save">' + Resizeable.getTranslation( 'save' ) + '</a>\n' +
                           '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="splitHL">' + Resizeable.getTranslation( 'splitH' ) + '</a>\n' +
                           '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="splitVT">' + Resizeable.getTranslation( 'splitV' ) + '</a>\n' +
                           ( Resizeable.availableModules.length > 0 ? '<hr class="' + Resizeable.Classes.CONTEXT_DIVIDER + '" />' : '' );
@@ -123,6 +135,7 @@ Resizeable.handleContextMenu = function(e) {
                     }
                     else {
                       cmenu = '<div class="' + Resizeable.Classes.CONTEXT_MENU + '">\n' +
+                          '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="save">' + Resizeable.getTranslation( 'save' ) + '</a>\n' +
                           '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="splitHL">' + Resizeable.getTranslation( 'splitHL' ) + '</a>\n' +
                           '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="splitHR">' + Resizeable.getTranslation( 'splitHR' ) + '</a>\n' +
                           '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="splitVT">' + Resizeable.getTranslation( 'splitVT' ) + '</a>\n' +
@@ -131,11 +144,15 @@ Resizeable.handleContextMenu = function(e) {
                           '" href="#" data-win="' + currElem.id + '" data-value="remove">' + Resizeable.getTranslation( 'remove' ) + thisWin.module.moduleName[ Resizeable.language ] + '</a>\n</div>\n';
                     }
                 }
+                else {
+                  cmenu = '<div class="' + Resizeable.Classes.CONTEXT_MENU + '">\n' +
+                      '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + currElem.id + '" data-value="save">' + Resizeable.getTranslation( 'save' ) + '</a>\n</div>\n';
+                }
             }
             else if( currElem.classList.contains( Resizeable.Classes.RESIZER )) {
               let thisBar = getResizerFromDiv( currElem.id );
               if( thisBar.isHorizontal) {
-                if( thisBar.leftWindow.module !== null && thisBar.rightWindow.module !== null ) {
+                if(( thisBar.leftWindow.module !== null || thisBar.leftWindow.children.length > 0 ) && ( thisBar.rightWindow.module !== null || thisBar.rightWindow.children.length > 0 )) {
                   cmenu = '<div class="' + Resizeable.Classes.CONTEXT_MENU + '">\n' +
                       '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + thisBar.parent.divId + '" data-value="mergeL">' + Resizeable.getTranslation( 'mergeL' ) + '</a>\n' +
                       '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + thisBar.parent.divId + '" data-value="mergeR">' + Resizeable.getTranslation( 'mergeR' ) + '</a>\n</div>\n';
@@ -143,11 +160,11 @@ Resizeable.handleContextMenu = function(e) {
                 else {
                   cmenu = '<div class="' + Resizeable.Classes.CONTEXT_MENU + '">\n' +
                       '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + thisBar.parent.divId + '" data-value="' +
-                      ( thisBar.rightWindow.module !== null ? 'mergeR' : 'mergeL' ) + '">' + Resizeable.getTranslation( 'merge' ) + '</a>\n</div>\n';
+                      (( thisBar.rightWindow.module !== null || thisBar.rightWindow.children.length > 0 ) ? 'mergeR' : 'mergeL' ) + '">' + Resizeable.getTranslation( 'merge' ) + '</a>\n</div>\n';
                 }
               }
               else {
-                if( thisBar.topWindow.module !== null && thisBar.bottomWindow.module !== null ) {
+                if(( thisBar.topWindow.module !== null || thisBar.topWindow.children.length > 0 ) && ( thisBar.bottomWindow.module !== null || thisBar.bottomWindow.children.length > 0 )) {
                   cmenu = '<div class="' + Resizeable.Classes.CONTEXT_MENU + '">\n' +
                       '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + thisBar.parent.divId + '" data-value="mergeT">' + Resizeable.getTranslation( 'mergeT' ) + '</a>\n' +
                       '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + thisBar.parent.divId + '" data-value="mergeB">' + Resizeable.getTranslation( 'mergeB' ) + '</a>\n</div>\n';
@@ -155,7 +172,7 @@ Resizeable.handleContextMenu = function(e) {
                 else {
                   cmenu = '<div class="' + Resizeable.Classes.CONTEXT_MENU + '">\n' +
                       '    <a class="' + Resizeable.Classes.CONTEXT_MENUITEM + '" href="#" data-win="' + thisBar.parent.divId + '" data-value="' +
-                      ( thisBar.bottomWindow.module !== null ? 'mergeB' : 'mergeT' ) + '">' + Resizeable.getTranslation( 'merge' ) + '</a>\n</div>\n';
+                      (( thisBar.bottomWindow.module !== null || thisBar.bottomWindow.children.length > 0 ) ? 'mergeB' : 'mergeT' ) + '">' + Resizeable.getTranslation( 'merge' ) + '</a>\n</div>\n';
                 }
               }
             }
@@ -203,6 +220,9 @@ Resizeable.handleContextMenuClick = function( e ) {
                 case 'remove':
                     winElem.unbindModule();
                     break;
+                case 'save':
+                    Resizeable.exportLayout();
+                    break;
                 default:
                     break;
             }
@@ -211,15 +231,96 @@ Resizeable.handleContextMenuClick = function( e ) {
 };
 
 Resizeable.setModules = function( modArr ) {
+    Resizeable.contentModules = [...modArr];
     Resizeable.availableModules = [...modArr];
 };
 
-Resizeable.importLayout = function ( layout ) {
+function writeLayout ( parentElem, layoutObj, modules, sizes ) {
+  let child0, child1, childElem;
+  sizes[ parentElem.id ] = layoutObj.size;
+  if( layoutObj.content !== undefined ) {
+    child0 = Resizeable.Classes.CONTENT_WINDOW + Resizeable.nextContentWindowSeq();
+    child1 = Resizeable.Classes.CONTENT_WINDOW + Resizeable.nextContentWindowSeq();
+    if ( layoutObj.splitH ) {
+      parentElem.insertAdjacentHTML('beforeend', '<div class="rsz-left" id="' + child0 + '"></div><div class="rsz-right" id="' + child1 + '"></div>' )
+    }
+    else if ( layoutObj.splitV ) {
+      parentElem.insertAdjacentHTML('beforeend', '<div class="rsz-top" id="' + child0 + '"></div><div class="rsz-bottom" id="' + child1 + '"></div>' )
+    }
+    writeLayout( document.getElementById( child0 ), layoutObj.content[0], modules, sizes );
+    writeLayout( document.getElementById( child1 ), layoutObj.content[1], modules, sizes );
+  }
+  else if ( layoutObj.module !== undefined ) {
+    modules.push( { win: parentElem.id, module: layoutObj.module })
+  }
+}
 
+Resizeable.importLayout = function ( layout ) {
+  let layoutObj, tempModules= [], tempSizes= {};
+  layoutObj = ( typeof layout === 'string' ) ? JSON.parse( layout ) : layout;
+
+  if (Resizeable.activeContentWindows.length > 0) {
+    let tempDiv = Resizeable.activeContentWindows[0].divId;
+    let mainWin= document.getElementById(tempDiv), tgtWin;
+    if( mainWin ) {
+
+      // Clear resizer attributes
+      Resizeable.activeContentWindows = [];
+      Resizeable.activeResizers = [];
+      Resizeable.availableModules = [ ...Resizeable.contentModules ];
+      Resizeable.currentResizer = null;
+      Resizeable.contentWindowSeq = 0;
+      Resizeable.resizerSeq = 0;
+
+      // Empty the initial container
+      let newWin = document.createElement('div');
+      newWin.id = tempDiv;
+      mainWin.replaceWith( newWin );
+      newWin.style.width = ( layoutObj.width ?? Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0 )) + 'px';
+      newWin.style.height = ( layoutObj.height ?? Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0 )) + 'px';
+
+      // Now process the new layout
+      tempSizes[ tempDiv ] = layoutObj.size;
+      writeLayout( newWin, layoutObj, tempModules, tempSizes );
+      Resizeable.initialise( newWin, Resizeable.language, Resizeable.layoutName, Resizeable.exportFunc, tempSizes, Resizeable.resizerThickness );
+
+      // Assign all modules
+      for( let i=0; i < tempModules.length; i++ ) {
+        tgtWin = Resizeable.findWindow( tempModules[i].win );
+        if( tgtWin ) {
+          tgtWin.bindModule( tempModules[i].module )
+        }
+      }
+    }
+  }
 };
 
-Resizeable.exportLayout = function () {
+function readLayout ( currWin ) {
+  let layout = { splitH: currWin.isSplitHorizontally, splitV: currWin.isSplitVertically, size: currWin.sizeFractionOfParent };
 
+  if( currWin.children.length > 0 ) {
+    let child0 = null, child1 = null;
+    child0 = readLayout( currWin.children[0] );
+    child1 = readLayout( currWin.children[1] );
+    layout.content = [ child0, child1 ];
+  }
+  else if ( currWin.module !== null ) {
+    layout.module = currWin.module.moduleId;
+  }
+  return layout
+}
+
+Resizeable.exportLayout = function () {
+  let layout = {};
+  if( Resizeable.exportFunc !== undefined && Resizeable.exportFunc !== null && typeof Resizeable.exportFunc === 'function' ) {
+    if (Resizeable.activeContentWindows.length > 0) {
+      layout = readLayout( Resizeable.activeContentWindows[0] );
+    }
+    layout.layoutName = Resizeable.layoutName;
+    layout.width = Resizeable.activeContentWindows[0].width;
+    layout.height = Resizeable.activeContentWindows[0].height;
+    Resizeable.exportFunc( JSON.stringify( layout ));
+  }
 };
 
 Resizeable.nextContentWindowSeq = function() {
@@ -268,7 +369,6 @@ Resizeable.ContentWindow = class {
     this.minHeight = 50;
     this.originalMinSize = 50;
     this.childResizerThickness = Resizeable.resizerThickness;
-
 
     this.getDiv().style.position = "absolute";
     this.getDiv().style.overflow = "hidden";
@@ -406,10 +506,6 @@ Resizeable.ContentWindow = class {
 
     this.repositionChildResizer();
 
-  }
-
-  toString(){
-    return `divId = ${this.divId}, parent = ${this.parent.getDivId()}, width = ${this.width}, height = ${this.height}`;
   }
 
   changeSize(width, height){
@@ -568,6 +664,11 @@ Resizeable.ContentWindow = class {
       Resizeable.availableModules.push( this.module );
       this.module = null;
     }
+
+    if( this.children.length > 0 ) {
+      this.children[0].unbindModule();
+      this.children[1].unbindModule();
+    }
   };
 
   split( isHorizontal, existTopLeft ) {
@@ -596,49 +697,50 @@ Resizeable.ContentWindow = class {
     let elemContent, sibWin, parentWin, removeResizer;
     this.unbindModule();
     sibWin = this.getSibling();
-    elemContent = document.getElementById(sibWin.getDivId()).innerHTML;
-    removeResizer = this.parent.childResizer;
-    removeResizer.getDiv().parentNode.removeChild(removeResizer.getDiv());
-    for (let i = 0; i < Resizeable.activeResizers.length; i++) {
-      if (Resizeable.activeResizers[i] === removeResizer) {
-        Resizeable.activeResizers.splice(i, 1);
-        break
-      }
-    }
+    if( sibWin !== null ) { elemContent = document.getElementById(sibWin.getDivId()).innerHTML }
 
     parentWin = this.parent;
-    parentWin.getDiv().innerHTML = elemContent;
-    if( sibWin.module !== null ) {
-      parentWin.module = { ...sibWin.module };
-      sibWin.module = null;
-      parentWin.contentResize()
-    }
+    if( parentWin ) {
+      removeResizer = this.parent.childResizer;
+      removeResizer.getDiv().parentNode.removeChild(removeResizer.getDiv());
+      for (let i = 0; i < Resizeable.activeResizers.length; i++) {
+        if (Resizeable.activeResizers[i] === removeResizer) {
+          Resizeable.activeResizers.splice(i, 1);
+          break
+        }
+      }
 
-    if (parentWin.isSplitHorizontally) {
-      parentWin.isSplitHorizontally = false;
-    } else if (parentWin.isSplitVertically) {
-      parentWin.isSplitVertically = false;
-    }
-    if ( sibWin.children.length > 0 ) {
-      parentWin.children = sibWin.children;
-      parentWin.childResizer = sibWin.childResizer;
-      parentWin.isSplitHorizontally = sibWin.isSplitHorizontally;
-      parentWin.isSplitVertically = sibWin.isSplitVertically;
-      parentWin.children[0].parent = parentWin;
-      parentWin.children[1].parent = parentWin;
-      if( parentWin.isSplitHorizontally ) {
-        parentWin.leftWindow = parentWin.children[0];
-        parentWin.rightWindow = parentWin.children[1]
+      parentWin.getDiv().innerHTML = elemContent;
+      if (sibWin.module !== null) {
+        parentWin.module = {...sibWin.module};
+        sibWin.module = null;
+        parentWin.contentResize()
       }
-      else if( parentWin.isSplitVertically ) {
-        parentWin.topWindow = parentWin.children[0];
-        parentWin.bottomWindow = parentWin.children[1]
+
+      if (parentWin.isSplitHorizontally) {
+        parentWin.isSplitHorizontally = false;
+      } else if (parentWin.isSplitVertically) {
+        parentWin.isSplitVertically = false;
       }
-      parentWin.childResizer.parent = parentWin;
-    }
-    else {
-      parentWin.children = [];
-      parentWin.childResizer = null
+      if (sibWin.children.length > 0) {
+        parentWin.children = sibWin.children;
+        parentWin.childResizer = sibWin.childResizer;
+        parentWin.isSplitHorizontally = sibWin.isSplitHorizontally;
+        parentWin.isSplitVertically = sibWin.isSplitVertically;
+        parentWin.children[0].parent = parentWin;
+        parentWin.children[1].parent = parentWin;
+        if (parentWin.isSplitHorizontally) {
+          parentWin.leftWindow = parentWin.children[0];
+          parentWin.rightWindow = parentWin.children[1]
+        } else if (parentWin.isSplitVertically) {
+          parentWin.topWindow = parentWin.children[0];
+          parentWin.bottomWindow = parentWin.children[1]
+        }
+        parentWin.childResizer.parent = parentWin;
+      } else {
+        parentWin.children = [];
+        parentWin.childResizer = null
+      }
     }
 
     for (let i= Resizeable.activeContentWindows.length; i >= 0; --i ) {
@@ -648,14 +750,16 @@ Resizeable.ContentWindow = class {
       }
     }
 
-    for (let i= Resizeable.activeContentWindows.length; i >= 0; --i ) {
-      if (Resizeable.activeContentWindows[i] === sibWin ) {
-        Resizeable.activeContentWindows.splice(i, 1);
-        break
+    if( sibWin !== null ) {
+      for (let i= Resizeable.activeContentWindows.length; i >= 0; --i ) {
+        if (Resizeable.activeContentWindows[i] === sibWin ) {
+          Resizeable.activeContentWindows.splice(i, 1);
+          break
+        }
       }
     }
 
-    if( parentWin.children.length > 0 ) {
+    if( parentWin && parentWin.children.length > 0 ) {
       parentWin.childrenResize()
     }
   }
@@ -817,9 +921,7 @@ Resizeable.Resizer = class{
 
   }
 
-
   resize(e){
-    
 
     let inputX = Math.round( e.pageX );
     let inputY = Math.round( e.pageY );

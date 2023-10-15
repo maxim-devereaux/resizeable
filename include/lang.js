@@ -1,6 +1,7 @@
 
 export const resizeableTranslations = {
     "en":{
+        "save": "Save layout",
         "splitH": "Split horizontally",
         "splitHL": "Split horizontally (content on left)",
         "splitHR": "Split horizontally (content on right)",
@@ -16,6 +17,7 @@ export const resizeableTranslations = {
         "add": "Add: "
     },
     "no":{
+        "save": "Lagre visning",
         "splitH": "Del horisontalt",
         "splitHL": "Del horisontalt (innhold til venstre)",
         "splitHR": "Del horisontalt (innhold til høyre)",

@@ -29,7 +29,6 @@
 	</head>
 
 	<body>
-
 		<div id="main">
 			<div class="rsz-left" id="win1">
 				<div class="rsz-top" id="win3">
@@ -73,10 +72,7 @@
 				"win13" : 0.4 
 			};
 
-			//let resizerThickness = 10;
-			//Resizeable.initialise("main", sizes, resizerThickness);
-			Resizeable.initialise("main", 'no', sizes, 4 );
-			Resizeable.setModules( [ { moduleId: 'cb', moduleName: { en: 'chessboard', no: 'sjakkbrett'  }, initialise: null } ]);
+			Resizeable.initialise( document.getElementById("main"), { lang: 'no', name: '', export: null, sizes: sizes, separator: 4 });
 		});
 
 		window.addEventListener("resize", () => {
