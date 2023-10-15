@@ -505,6 +505,8 @@ Resizeable.ContentWindow = class {
       this.children[1].getDiv().style.top = ( parseInt(this.children[0].getDiv().style.height) + this.childResizer.lineThickness ).toString() + "px";
     }
 
+    this.contentResize();
+
     this.children[0].childrenResize();
     this.children[1].childrenResize();
 
