@@ -7,7 +7,7 @@
 		<link rel="stylesheet" type="text/css" href="resizeable-style.css">
 		<title>Resizeable Demo</title>
 
-		<script src="resizeable.js"></script>
+		<link rel="modulepreload" href="resizeable.js">
 
 		<style>
 
@@ -31,31 +31,32 @@
 	<body>
 
 		<div id="main">
-			<div class="resizeable-left" id="win1">
-				<div class="resizeable-top" id="win3">
-					<div class="resizeable-left" id="win5"></div>
-					<div class="resizeable-right" id="win6"></div>
+			<div class="rsz-left" id="win1">
+				<div class="rsz-top" id="win3">
+					<div class="rsz-left" id="win5"></div>
+					<div class="rsz-right" id="win6"></div>
 				</div>
-				<div class="resizeable-bottom" id="win4"></div>
+				<div class="rsz-bottom" id="win4"></div>
 			</div>
-			<div class="resizeable-right" id="win2">
-				<div class="resizeable-top" id="win7">
-					<div class="resizeable-left" id="win9"></div>
-					<div class="resizeable-right" id="win10">
-						<div class="resizeable-top" id="win11">
-							<div class="resizeable-left" id="win13"></div>
-							<div class="resizeable-right" id="win14"></div>
+			<div class="rsz-right" id="win2">
+				<div class="rsz-top" id="win7">
+					<div class="rsz-left" id="win9"></div>
+					<div class="rsz-right" id="win10">
+						<div class="rsz-top" id="win11">
+							<div class="rsz-left" id="win13"></div>
+							<div class="rsz-right" id="win14"></div>
 						</div>
-						<div class="resizeable-bottom" id="win12"></div>
+						<div class="rsz-bottom" id="win12"></div>
 					</div>
 				</div>
-				<div class="resizeable-bottom" id="win8"></div>
+				<div class="rsz-bottom" id="win8"></div>
 			</div>
 		</div>
 
 	</body>
 
-	<script>
+	<script type="module">
+		import { Resizeable } from './resizeable.js'
 
 		document.addEventListener("DOMContentLoaded", () => {
 			//...
@@ -74,21 +75,13 @@
 
 			//let resizerThickness = 10;
 			//Resizeable.initialise("main", sizes, resizerThickness);
-			Resizeable.initialise("main", {});
-
+			Resizeable.initialise("main", 'no', sizes, 4 );
+			Resizeable.setModules( [ { moduleId: 'cb', moduleName: { en: 'chessboard', no: 'sjakkbrett'  }, initialise: null } ]);
 		});
 
 		window.addEventListener("resize", () => {
 			Resizeable.activeContentWindows[0].changeSize(window.innerWidth, window.innerHeight);
 			Resizeable.activeContentWindows[0].childrenResize();
-		});
-
-		window.addEventListener("click", () => {
-			Resizeable.splitWindow( event, true );
-		});
-
-		window.addEventListener("contextmenu", () => {
-			Resizeable.removeSplit( event, true );
 		});
 
 	</script>

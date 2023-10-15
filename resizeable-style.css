@@ -1,19 +1,74 @@
 
-.content-window {
+.rsz-window {
   position: absolute;
   background-color: #B4E0DE;
 }
 
-.resizer {
+.rszr {
   position: absolute;
   z-index: 1035;
   background-color: #4E6160;
 }
 
-.vertical-resizer {
+.vertical-rszr {
   cursor: ns-resize;
 }
 
-.horizontal-resizer {
+.horizontal-rszr {
   cursor: ew-resize;
+}
+
+.rsz-contextmenu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1100;
+  display: none;
+  width: max-content;
+  padding: 0.5rem 0;
+  font-size: 0.8125rem;
+  color: #3e3d42;
+  text-align: left;
+  list-style: none;
+  background-color: #f3f3f3;
+  background-clip: padding-box;
+  border: 0 solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5 );
+}
+
+.rsz-menuitem {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  z-index: 1100;
+  clear: both;
+  font-weight: 600;
+  color: #343a40;
+  text-align: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+
+  .rsz-menuitem:hover, .rsz-menuitem:focus {
+    color: #f3f3f3;
+    text-decoration: underline;
+  }
+
+  .rsz-menuitem.disabled, .rsz-menuitem:disabled {
+    color: #6c757d;
+    pointer-events: none;
+  }
+}
+
+.rsz-divider {
+  border: 0;
+  margin: 4px 0;
+  clear: both;
+  display: block;
+  width: 100%;
+  background-color:#4E6160;
+  height: 1px;
 }
