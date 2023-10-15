@@ -1,0 +1,20 @@
+{
+  "name": "resizeable",
+  "description": "Resizeable layout in JS",
+  "version": "1.0.0",
+  "author": {
+    "name": "Maxim Stanford",
+    "email": "maximbstanford@gmail.com"
+  },
+  "dependencies": {},
+  "keywords": [
+    "panels"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/maxim-devereaux/resizeable"
+  },
+  "license": "MIT",
+  "main": "resizeable.js",
+  "readmeFilename": "Readme.md"
+}
