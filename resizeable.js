@@ -89,6 +89,7 @@ Resizeable.setupChildren = function(parentWindow){
     //No children found
     return;
   }
+  parentWindow.getDiv().classList.remove( Resizeable.Classes.CONTENT_PADDING );
   let sizeFraction = Resizeable.initialSizes[childInfo.child1.id];
   if(sizeFraction === undefined)
     sizeFraction = 0.5;
@@ -349,6 +350,7 @@ Resizeable.ContentWindow = class {
       let div = document.createElement('div');
       div.id = this.divId;
       div.classList.add( Resizeable.Classes.CONTENT_WINDOW );
+      div.classList.add( Resizeable.Classes.CONTENT_PADDING );
 
       //Insert the div with correct ID into the parent window; or body if parent is null
       if(parent !== null){
@@ -362,6 +364,7 @@ Resizeable.ContentWindow = class {
         div.id = Resizeable.Classes.CONTENT_WINDOW + Resizeable.nextContentWindowSeq();
       this.divId = div.id;
       this.getDiv().classList.add( Resizeable.Classes.CONTENT_WINDOW );
+      this.getDiv().classList.add( Resizeable.Classes.CONTENT_PADDING );
     }
 
     this.children = [];
@@ -769,7 +772,8 @@ Resizeable.ContentWindow = class {
         parentWin.childResizer.parent = parentWin;
       } else {
         parentWin.children = [];
-        parentWin.childResizer = null
+        parentWin.childResizer = null;
+        parentElem.classList.add( Resizeable.Classes.CONTENT_PADDING )
       }
     }
 

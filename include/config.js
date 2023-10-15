@@ -8,6 +8,7 @@ export const resizeableClasses = {
     CONTEXT_MENUITEM: "rsz-menuitem",
     CONTEXT_DIVIDER: "rsz-divider",
     CONTENT_WINDOW: "rsz-window",
+    CONTENT_PADDING: "rsz-padding",
     RESIZER: "rszr",
     RESIZER_HORIZONTAL: "horizontal-rszr",
     RESIZER_VERTICAL: "vertical-rszr"
