@@ -656,8 +656,8 @@ Resizeable.ContentWindow = class {
       if( foundModules.length > 0 ) {
         this.module = {...foundModules[0]};
         Resizeable.availableModules.splice(Resizeable.availableModules.findIndex(e => e.moduleId === tgtModule),1);
-        if( this.module.initialise !== undefined && this.module.initialise !== null && typeof this.module.initialise === 'function' ) {
-          this.module.initialise( this.getDiv());
+        if( this.module.init !== undefined && this.module.init !== null && typeof this.module.init === 'function' ) {
+          this.module.init( this.getDiv());
         }
       }
     }
@@ -666,6 +666,9 @@ Resizeable.ContentWindow = class {
   unbindModule() {
     if ( this.module !== null ) {
       Resizeable.availableModules.push( this.module );
+      if( this.module.uninit !== undefined && this.module.uninit !== null && typeof this.module.uninit === 'function' ) {
+        this.module.uninit( this.getDiv());
+      }
       this.module = null;
     }
 
